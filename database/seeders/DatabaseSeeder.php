@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\User;
 use App\Models\Category;
 use App\Models\Page;
+use App\Models\PageSection;
+use App\Models\Infobox;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,13 +17,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-        $this->call(AdminUserSeeder::class);
+        // Criar 10 categorias
+        Category::factory(10)->create()->each(function ($category) {
+            // Criar 10 páginas para cada categoria
+            Page::factory(10)->create(['category_id' => $category->id])->each(function ($page) {
+                // Criar 3 seções para cada página
+                PageSection::factory(3)->create(['page_id' => $page->id]);
 
-        // Cria 10 categorias
-        $categories = Category::factory(10)->create();
-
-        // Cria 50 páginas associadas às categorias
-        Page::factory(50)->create();
+                // Criar uma infobox para cada página
+                Infobox::factory()->create(['page_id' => $page->id]);
+            });
+        });
     }
 }

@@ -17,7 +17,6 @@ class AdminUserSeeder extends Seeder
             'name' => 'Daniel',
             'email' => 'danielcostagois@gmail.com',
             'password' => Hash::make('testevaldo'), // Substitua "password" pela senha desejada
-            'role' => 'admin',
             'email_verified_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),

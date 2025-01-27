@@ -20,7 +20,7 @@ class PageFactory extends Factory
             'slug' => Str::slug($title),
             'content' => $this->faker->paragraphs(5, true),
             'status' => $this->faker->randomElement(['draft', 'published']),
-            'category_id' => \App\Models\Category::inRandomOrder()->first()->id,
+            'category_id' => Category::factory(),
             'author_id' => 1,
         ];
     }

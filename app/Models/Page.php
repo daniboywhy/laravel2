@@ -36,4 +36,15 @@ class Page extends Model
     {
         return $this->belongsTo(User::class, 'author_id');
     }
+
+    public function sections()
+    {
+        return $this->hasMany(PageSection::class);
+    }
+
+    public function infobox()
+    {
+        return $this->hasOne(Infobox::class);
+    }
+
 }
