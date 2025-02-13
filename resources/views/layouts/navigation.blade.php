@@ -53,6 +53,12 @@
                                 </x-dropdown-link>
                             @endif
 
+                            @if(auth()->user()->hasPermissionTo('create pages'))
+                                <x-dropdown-link :href="route('pages.create')">
+                                    {{ __('Criar página') }}
+                                </x-dropdown-link>
+                            @endif
+
                             <!-- Authentication -->
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
@@ -109,6 +115,12 @@
                     @if(auth()->user()->hasRole('admin'))
                         <x-responsive-nav-link :href="route('admin.users')">
                             {{ __('Gerenciar') }}
+                        </x-responsive-nav-link>
+                    @endif
+
+                    @if(auth()->user()->hasPermissionTo('create pages'))
+                        <x-responsive-nav-link :href="route('pages.create')">
+                            {{ __('Criar página') }}
                         </x-responsive-nav-link>
                     @endif
 

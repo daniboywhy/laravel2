@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\PageSection;
 use App\Models\Category;
+use App\Models\Infobox;
 use App\Models\Page;
 use Illuminate\Support\Str;
 
@@ -13,8 +14,7 @@ class PageController extends Controller
     public function show($slug)
     {
         // Busca a página pelo slug
-        $page = Page::with(['sections', 'infobox'])->where('slug', $slug)->firstOrFail();
-
+        $page = Page::with(['sections', 'infobox'])->where('slug', $slug)->firstOrFail();        
         return view('pages.show', compact('page'));
     }
 
@@ -42,6 +42,10 @@ class PageController extends Controller
             'sections' => 'required|array|min:1',
             'sections.*.title' => 'required|string|max:255',
             'sections.*.content' => 'required|string',
+            'infobox' => 'nullable|array',
+            'infobox.*.key' => 'required_with:infobox.*.value|string|max:255',
+            'infobox.*.value' => 'required_with:infobox.*.key|string|max:255',
+            'infobox_image' => 'nullable|file|mimes:jpeg,png|max:2048',
         ]);
 
         if (!empty($validated['new_category'])) {
@@ -75,6 +79,23 @@ class PageController extends Controller
                 'page_id' => $page->id,
                 'title' => $section['title'],
                 'content' => $section['content'],
+            ]);
+        }
+
+        // Criar a Infobox (se houver dados)
+        if ($request->hasFile('infobox_image') || !empty($validated['infobox'])) {
+            $imagePath = null;
+            
+            // Upload da imagem, se existir
+            if ($request->hasFile('infobox_image')) {
+                $imagePath = $request->file('infobox_image')->store('infoboxes', 'public');
+            }
+
+            // Salvar os campos da infobox
+            Infobox::create([
+                'page_id' => $page->id,
+                'image_path' => $imagePath ?? null, // Caminho da imagem
+                'fields' => json_encode($validated['infobox']), // Salva os campos como JSON
             ]);
         }
 

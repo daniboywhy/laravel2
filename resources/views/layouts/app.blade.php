@@ -34,7 +34,7 @@
             </main>
 
             <!-- Footer -->
-            <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-4">
+            <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-4 py-4">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <p class="text-center text-sm text-gray-500 dark:text-gray-400">
                         &copy; {{ now()->year }} {{ config('app.name') }}. Todos os direitos reservados.

@@ -14,7 +14,7 @@
             </div>
         @endif
 
-        <form action="{{ route('pages.store') }}" method="POST">
+        <form action="{{ route('pages.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <!-- Título -->
@@ -74,6 +74,28 @@
                 </button>
             </div>
 
+            <!-- Infobox -->
+            <div class="mb-4">
+                <h2 class="text-lg font-bold text-gray-700 dark:text-gray-300 mb-2">Infobox</h2>
+
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Imagem:</label>
+                <input type="file" name="infobox_image" class="w-full text-white px-4 py-2 border rounded">
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2 mt-4">Campos da Infobox:</label>
+                <div id="infobox-fields">
+                    @if(old('infobox'))
+                        @foreach(old('infobox') as $key => $value)
+                            <div class="flex space-x-2 mb-2">
+                                <input type="text" name="infobox[{{ $key }}][key]" class="w-1/3 px-4 py-2 border rounded" placeholder="Campo" value="{{ $value['key'] }}">
+                                <input type="text" name="infobox[{{ $key }}][value]" class="w-2/3 px-4 py-2 border rounded" placeholder="Valor" value="{{ $value['value'] }}">
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+                <button type="button" onclick="addInfoboxField()" class="bg-green-500 text-white px-4 py-2 rounded mt-2">
+                    Adicionar Campo
+                </button>
+            </div>
+
             <!-- Botão de Salvar -->
             <div>
                 <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">
@@ -94,6 +116,18 @@
                 </div>
             `;
             sectionsDiv.insertAdjacentHTML('beforeend', sectionHTML);
+        }
+
+        function addInfoboxField() {
+            let fieldsDiv = document.getElementById('infobox-fields');
+            let index = fieldsDiv.children.length;
+            let fieldHTML = `
+                <div class="flex space-x-2 mb-2">
+                    <input type="text" name="infobox[${index}][key]" class="w-1/3 px-4 py-2 border rounded" placeholder="Campo">
+                    <input type="text" name="infobox[${index}][value]" class="w-2/3 px-4 py-2 border rounded" placeholder="Valor">
+                </div>
+            `;
+            fieldsDiv.insertAdjacentHTML('beforeend', fieldHTML);
         }
 
         // Exibir campo de nova categoria se "Criar nova categoria" for selecionado
