@@ -24,6 +24,75 @@ class PageController extends Controller
         return view('pages.create', compact('categories'));
     }
 
+    public function edit($slug)
+    {
+        $page = Page::where('slug', $slug)->firstOrFail();
+
+        // Restringir edição apenas para Admins ou para o Autor da Página
+        if (!auth()->user()->hasRole('admin') && auth()->id() !== $page->author_id) {
+            abort(403, 'Você não tem permissão para editar esta página.');
+        }
+
+        $categories = Category::all();
+        
+        return view('pages.edit', compact('page', 'categories'));
+    }
+
+    public function update(Request $request, $slug)
+    {
+        $page = Page::where('slug', $slug)->firstOrFail();
+
+        if (!auth()->user()->hasRole('admin') && auth()->id() !== $page->author_id) {
+            abort(403, 'Você não tem permissão para editar esta página.');
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'nullable|string',
+            'category_id' => 'required|exists:categories,id',
+            'sections' => 'required|array|min:1',
+            'sections.*.title' => 'required|string|max:255',
+            'sections.*.content' => 'required|string',
+            'infobox_image' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'infobox' => 'nullable|array',
+            'infobox.*.key' => 'required|string',
+            'infobox.*.value' => 'required|array|min:1',
+        ]);
+
+        // Atualiza a página
+        $page->update([
+            'title' => $validated['title'],
+            'slug' => Str::slug($validated['title']),
+            'category_id' => $validated['category_id'],
+            'content' => $validated['content'],
+        ]);
+
+        // Atualiza as seções (exclui antigas e adiciona novas)
+        $page->sections()->delete();
+        foreach ($validated['sections'] as $section) {
+            $page->sections()->create([
+                'title' => $section['title'],
+                'content' => $section['content'],
+            ]);
+        }
+
+        // Atualiza a infobox
+        if ($request->hasFile('infobox_image')) {
+            $imagePath = $request->file('infobox_image')->store('infoboxes', 'public');
+            $page->infobox()->updateOrCreate([], ['image_path' => $imagePath]);
+        }
+
+        if (isset($validated['infobox'])) {
+            $page->infobox()->updateOrCreate([], [
+                'fields' => json_encode($validated['infobox'])
+            ]);
+        }
+
+        return redirect()->route('pages.show', $page->slug)->with('success', 'Página atualizada com sucesso!');
+    }
+
+
+
     public function store(Request $request)
     {
         if ($request->category_id === "new") {
@@ -44,7 +113,8 @@ class PageController extends Controller
             'sections.*.content' => 'required|string',
             'infobox' => 'nullable|array',
             'infobox.*.key' => 'required_with:infobox.*.value|string|max:255',
-            'infobox.*.value' => 'required_with:infobox.*.key|string|max:255',
+            'infobox.*.value' => 'required|array|min:1', // Aceita múltiplos valores
+            'infobox.*.value.*' => 'required|string|max:500', // Cada valor dentro do array deve ser string
             'infobox_image' => 'nullable|file|mimes:jpeg,png|max:2048',
         ]);
 
@@ -84,19 +154,19 @@ class PageController extends Controller
 
         // Criar a Infobox (se houver dados)
         if ($request->hasFile('infobox_image') || !empty($validated['infobox'])) {
-            $imagePath = null;
-            
-            // Upload da imagem, se existir
+            $imagePath = $page->infobox->image_path ?? null; 
+        
             if ($request->hasFile('infobox_image')) {
                 $imagePath = $request->file('infobox_image')->store('infoboxes', 'public');
             }
-
-            // Salvar os campos da infobox
-            Infobox::create([
-                'page_id' => $page->id,
-                'image_path' => $imagePath ?? null, // Caminho da imagem
-                'fields' => json_encode($validated['infobox']), // Salva os campos como JSON
-            ]);
+        
+            $page->infobox()->updateOrCreate(
+                ['page_id' => $page->id], 
+                [
+                    'image_path' => $imagePath,
+                    'fields' => json_encode($validated['infobox'])
+                ]
+            );
         }
 
         return redirect()->route('pages.show', $page->slug)->with('success', 'Página criada com sucesso!');

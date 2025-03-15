@@ -11,7 +11,11 @@ use App\Http\Controllers\Admin\UserManagementController;
 Route::middleware(['auth', 'role:admin|writer'])->group(function () {
     Route::get('/pages/create', [PageController::class, 'create'])->name('pages.create');
     Route::post('/pages', [PageController::class, 'store'])->name('pages.store');
+    Route::get('/pages/{id}/edit', [PageController::class, 'edit'])->name('pages.edit')->middleware(['auth', 'permission:edit pages']);
+    Route::put('/pages/{id}', [PageController::class, 'update'])->name('pages.update')->middleware(['auth', 'permission:edit pages']);
+
 });
+
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/categories/{slug}', [CategoryController::class, 'show'])->name('categories.show');
